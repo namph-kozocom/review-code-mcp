@@ -1,0 +1,16 @@
+{
+	"servers": {
+		"my-github-copilot-mcp-server": {
+			"type": "stdio",
+			"command": "node",
+			"args": [
+				"/absolute/path/to/your/workspace/src/index.js"
+			],
+			"env": {
+				"GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PERSONAL_ACCESS_TOKEN}",
+				"WORKSPACE_PATH": "${env:WORKSPACE_PATH}"
+			}
+		}
+	},
+	"inputs": []
+}
