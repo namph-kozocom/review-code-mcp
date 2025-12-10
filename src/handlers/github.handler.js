@@ -115,4 +115,71 @@ export class GitHubHandler {
       ]
     };
   }
+
+  async createReview(args) {
+    if (!this.octokit) {
+      throw new Error('GitHub token not configured');
+    }
+
+    const { owner, repo, pr_number, body, event, comments } = args;
+
+    // Create review with optional comments
+    const reviewData = {
+      owner,
+      repo,
+      pull_number: pr_number,
+      body,
+      event: event || 'COMMENT', // APPROVE, REQUEST_CHANGES, or COMMENT
+    };
+
+    // Add line comments if provided
+    if (comments && comments.length > 0) {
+      reviewData.comments = comments.map(comment => ({
+        path: comment.path,
+        line: comment.line,
+        body: comment.body,
+        side: comment.side || 'RIGHT' // LEFT for old file, RIGHT for new file
+      }));
+    }
+
+    const { data: review } = await this.octokit.pulls.createReview(reviewData);
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `✅ Review created successfully!\n\n` +
+                `Event: ${review.state}\n` +
+                `Review ID: ${review.id}\n` +
+                `URL: ${review.html_url}`
+        }
+      ]
+    };
+  }
+
+  async createComment(args) {
+    if (!this.octokit) {
+      throw new Error('GitHub token not configured');
+    }
+
+    const { owner, repo, pr_number, body } = args;
+
+    const { data: comment } = await this.octokit.issues.createComment({
+      owner,
+      repo,
+      issue_number: pr_number,
+      body
+    });
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `💬 Comment added successfully!\n\n` +
+                `Comment ID: ${comment.id}\n` +
+                `URL: ${comment.html_url}`
+        }
+      ]
+    };
+  }
 }

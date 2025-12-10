@@ -80,6 +80,12 @@ export class AICodeReviewMCP {
       
       case 'github_list_prs':
         return await this.githubHandler.listPRs(args);
+      
+      case 'github_create_review':
+        return await this.githubHandler.createReview(args);
+      
+      case 'github_create_comment':
+        return await this.githubHandler.createComment(args);
 
       // FileSystem Tools
       case 'fs_read_file':
