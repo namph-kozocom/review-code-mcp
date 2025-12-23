@@ -24,20 +24,8 @@ export const githubTools = [
       properties: {
         owner: { type: 'string', description: 'Repository owner' },
         repo: { type: 'string', description: 'Repository name' },
-        pr_number: { type: 'number', description: 'Pull request number' }
-      },
-      required: ['owner', 'repo', 'pr_number']
-    }
-  },
-  {
-    name: 'github_get_pr_diff',
-    description: 'Get pull request diff for code review',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        owner: { type: 'string', description: 'Repository owner' },
-        repo: { type: 'string', description: 'Repository name' },
-        pr_number: { type: 'number', description: 'Pull request number' }
+        pr_number: { type: 'number', description: 'Pull request number' },
+        include_diff: { type: 'boolean', description: 'Include diff content', default: false }
       },
       required: ['owner', 'repo', 'pr_number']
     }
@@ -90,25 +78,18 @@ export const githubTools = [
                 description: 'Side of diff (LEFT for old, RIGHT for new)',
                 enum: ['LEFT', 'RIGHT'],
                 default: 'RIGHT'
+              },
+              start_line: { type: 'number', description: 'Start line for multi-line comments' },
+              start_side: {
+                type: 'string',
+                description: 'Side of diff for start line (LEFT for old, RIGHT for new)',
+                enum: ['LEFT', 'RIGHT'],
+                default: 'RIGHT'
               }
             },
             required: ['path', 'line', 'body']
           }
         }
-      },
-      required: ['owner', 'repo', 'pr_number', 'body']
-    }
-  },
-  {
-    name: 'github_create_comment',
-    description: 'Add a general comment to a pull request',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        owner: { type: 'string', description: 'Repository owner' },
-        repo: { type: 'string', description: 'Repository name' },
-        pr_number: { type: 'number', description: 'Pull request number' },
-        body: { type: 'string', description: 'Comment text' }
       },
       required: ['owner', 'repo', 'pr_number', 'body']
     }

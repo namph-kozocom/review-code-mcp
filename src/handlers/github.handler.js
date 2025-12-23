@@ -45,6 +45,20 @@ export class GitHubHandler {
       pull_number: args.pr_number
     });
 
+    let diffText = '';
+
+    if (args.include_diff) {
+      const { data: diff } = await this.octokit.pulls.get({
+        owner: args.owner,
+        repo: args.repo,
+        pull_number: args.pr_number,
+        mediaType: {
+          format: 'diff'
+        }
+      });
+      diffText = `\n\nDiff:\n${diff}`;
+    }
+
     const info = 
       `🔀 Pull Request #${pr.number}: ${pr.title}\n\n` +
       `Author: @${pr.user.login}\n` +
@@ -57,34 +71,10 @@ export class GitHubHandler {
       `Changed Files: ${pr.changed_files}\n` +
       `Additions: +${pr.additions} | Deletions: -${pr.deletions}\n\n` +
       `Description:\n${pr.body || 'No description'}\n\n` +
-      `URL: ${pr.html_url}`;
+      `URL: ${pr.html_url}${diffText}`;
 
     return {
       content: [{ type: 'text', text: info }]
-    };
-  }
-
-  async getPRDiff(args) {
-    if (!this.octokit) {
-      throw new Error('GitHub token not configured');
-    }
-
-    const { data: diff } = await this.octokit.pulls.get({
-      owner: args.owner,
-      repo: args.repo,
-      pull_number: args.pr_number,
-      mediaType: {
-        format: 'diff'
-      }
-    });
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Pull Request #${args.pr_number} Diff:\n\n${diff}`
-        }
-      ]
     };
   }
 
@@ -132,13 +122,16 @@ export class GitHubHandler {
       event: event || 'COMMENT', // APPROVE, REQUEST_CHANGES, or COMMENT
     };
 
-    // Add line comments if provided
     if (comments && comments.length > 0) {
       reviewData.comments = comments.map(comment => ({
         path: comment.path,
         line: comment.line,
         body: comment.body,
-        side: comment.side || 'RIGHT' // LEFT for old file, RIGHT for new file
+        side: comment.side || 'RIGHT',
+        ...(comment.start_line && {
+          start_line: comment.start_line,
+          start_side: comment.start_side || 'RIGHT'
+        })
       }));
     }
 
