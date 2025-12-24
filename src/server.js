@@ -69,23 +69,14 @@ export class AICodeReviewMCP {
   async handleToolCall(name, args) {
     switch (name) {
       // GitHub Tools
-      case 'github_list_repos':
-        return await this.githubHandler.listRepos(args);
-      
       case 'github_get_pr':
         return await this.githubHandler.getPR(args);
-      
-      case 'github_get_pr_diff':
-        return await this.githubHandler.getPRDiff(args);
-      
+
       case 'github_list_prs':
         return await this.githubHandler.listPRs(args);
       
       case 'github_create_review':
         return await this.githubHandler.createReview(args);
-      
-      case 'github_create_comment':
-        return await this.githubHandler.createComment(args);
 
       // FileSystem Tools
       case 'fs_read_file':

@@ -7,33 +7,6 @@ export class GitHubHandler {
     this.octokit = octokit;
   }
 
-  async listRepos(args) {
-    if (!this.octokit) {
-      throw new Error('GitHub token not configured');
-    }
-
-    const { data } = await this.octokit.repos.listForAuthenticatedUser({
-      per_page: args.per_page || 30,
-      sort: 'updated'
-    });
-
-    const repoList = data.map(repo => 
-      `📦 ${repo.full_name} ${repo.private ? '🔒' : '🌍'}\n` +
-      `   ${repo.description || 'No description'}\n` +
-      `   ⭐ ${repo.stargazers_count} | Language: ${repo.language || 'N/A'}\n` +
-      `   ${repo.html_url}`
-    ).join('\n\n');
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `Found ${data.length} repositories:\n\n${repoList}`
-        }
-      ]
-    };
-  }
-
   async getPR(args) {
     if (!this.octokit) {
       throw new Error('GitHub token not configured');
@@ -56,7 +29,7 @@ export class GitHubHandler {
           format: 'diff'
         }
       });
-      diffText = `\n\nDiff:\n${diff}`;
+      diffText = `${diff}`;
     }
 
     const info = 
@@ -71,7 +44,8 @@ export class GitHubHandler {
       `Changed Files: ${pr.changed_files}\n` +
       `Additions: +${pr.additions} | Deletions: -${pr.deletions}\n\n` +
       `Description:\n${pr.body || 'No description'}\n\n` +
-      `URL: ${pr.html_url}${diffText}`;
+      `URL: ${pr.html_url}\n\n` +
+      `Diff: \n${diffText}`;
 
     return {
       content: [{ type: 'text', text: info }]
@@ -145,32 +119,6 @@ export class GitHubHandler {
                 `Event: ${review.state}\n` +
                 `Review ID: ${review.id}\n` +
                 `URL: ${review.html_url}`
-        }
-      ]
-    };
-  }
-
-  async createComment(args) {
-    if (!this.octokit) {
-      throw new Error('GitHub token not configured');
-    }
-
-    const { owner, repo, pr_number, body } = args;
-
-    const { data: comment } = await this.octokit.issues.createComment({
-      owner,
-      repo,
-      issue_number: pr_number,
-      body
-    });
-
-    return {
-      content: [
-        {
-          type: 'text',
-          text: `💬 Comment added successfully!\n\n` +
-                `Comment ID: ${comment.id}\n` +
-                `URL: ${comment.html_url}`
         }
       ]
     };

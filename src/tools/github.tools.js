@@ -3,20 +3,6 @@
  */
 export const githubTools = [
   {
-    name: 'github_list_repos',
-    description: 'List GitHub repositories for authenticated user',
-    inputSchema: {
-      type: 'object',
-      properties: {
-        per_page: {
-          type: 'number',
-          description: 'Number of repos to return (default: 30)',
-          default: 30
-        }
-      }
-    }
-  },
-  {
     name: 'github_get_pr',
     description: 'Get pull request details',
     inputSchema: {
