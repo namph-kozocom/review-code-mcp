@@ -48,7 +48,27 @@ export class GitHubHandler {
       `Diff: \n${diffText}`;
 
     return {
-      content: [{ type: 'text', text: info }]
+      content: [
+        { type: 'text', text: info },
+        {
+          type: 'text',
+          text: JSON.stringify({
+            pr_title: pr.title,
+            pr_body: pr.body,
+            pr_author: pr.user.login,
+            state: pr.state,
+            created_at: pr.created_at,
+            updated_at: pr.updated_at,
+            mergeable: pr.mergeable,
+            comments: pr.comments,
+            commits: pr.commits,
+            changed_files: pr.changed_files,
+            additions: pr.additions,
+            deletions: pr.deletions,
+            diff: diffText
+          })
+        }
+      ]
     };
   }
 

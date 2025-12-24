@@ -32,8 +32,14 @@ export class AICodeReviewMCP {
     const token = process.env.GITHUB_PERSONAL_ACCESS_TOKEN;
     const octokit = token ? new Octokit({ auth: token }) : null;
 
+    if (!token) {
+      console.error('[MCP Server] Warning: GITHUB_PERSONAL_ACCESS_TOKEN not set. GitHub tools will not work.');
+    }
+
     // Initialize handlers
     const workspacePath = process.env.WORKSPACE_PATH || process.cwd();
+    console.error(`[MCP Server] Workspace path: ${workspacePath}`);
+
     this.githubHandler = new GitHubHandler(octokit);
     this.filesystemHandler = new FileSystemHandler(workspacePath);
 
@@ -51,8 +57,13 @@ export class AICodeReviewMCP {
       const { name, arguments: args } = request.params;
 
       try {
-        return await this.handleToolCall(name, args);
+        console.error(`[MCP Server] Calling tool: ${name}`, JSON.stringify(args, null, 2));
+        const result = await this.handleToolCall(name, args);
+        console.error(`[MCP Server] Tool ${name} completed successfully`);
+        return result;
       } catch (error) {
+        console.error(`[MCP Server] Error in tool ${name}:`, error.message);
+        console.error(error.stack);
         return {
           content: [
             {
@@ -79,6 +90,7 @@ export class AICodeReviewMCP {
         return await this.githubHandler.createReview(args);
 
       // FileSystem Tools
+
       case 'fs_read_file':
         return await this.filesystemHandler.readFile(args);
       

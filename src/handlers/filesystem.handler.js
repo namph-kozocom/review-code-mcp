@@ -11,11 +11,18 @@ export class FileSystemHandler {
   }
 
   validatePath(filePath) {
+    // Resolve to absolute path first
     const fullPath = path.resolve(this.workspacePath, filePath);
-    if (!fullPath.startsWith(this.workspacePath)) {
+
+    // Normalize to handle .., ., etc
+    const normalizedPath = path.normalize(fullPath);
+
+    // Check if the normalized path is still within workspace
+    if (!normalizedPath.startsWith(path.normalize(this.workspacePath))) {
       throw new Error('Access denied: path outside workspace');
     }
-    return fullPath;
+
+    return normalizedPath;
   }
 
   async readFile(args) {
@@ -54,13 +61,24 @@ export class FileSystemHandler {
     const fullPath = this.validatePath(args.path || '.');
     const pattern = args.pattern;
     
-    // Simple pattern matching (e.g., *.js)
-    const regex = new RegExp(pattern.replace('*', '.*'));
+    // Convert glob pattern to regex (support **, *, ?)
+    const regexPattern = pattern
+      .replace(/\*\*/g, '§§') // Temporary replace **
+      .replace(/\*/g, '[^/]*') // * matches anything except /
+      .replace(/§§/g, '.*')    // ** matches everything including /
+      .replace(/\?/g, '.');    // ? matches single char
+
+    const regex = new RegExp(`^${regexPattern}$`);
     const files = await fs.readdir(fullPath, { recursive: true, withFileTypes: true });
     
     const matches = files
-      .filter(file => !file.isDirectory() && regex.test(file.name))
-      .map(file => `📄 ${path.join(file.path, file.name).replace(this.workspacePath, '')}`);
+      .filter(file => !file.isDirectory())
+      .map(file => {
+        const relativePath = path.join(file.path, file.name).replace(this.workspacePath + path.sep, '');
+        return { matched: regex.test(relativePath), path: relativePath };
+      })
+      .filter(item => item.matched)
+      .map(item => `📄 ${item.path}`);
 
     return {
       content: [
